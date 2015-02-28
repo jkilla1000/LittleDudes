@@ -18,7 +18,8 @@ class ClickSprite extends FlxSprite
 		this.loadGraphic(Assets.getBitmapData("assets/images/clickanim.png"), true, 16, 16, true);
 		this.scale.x = 2;
 		this.scale.y = 2;
-		this.centerOrigin();
+		this.origin.x = 16;
+		this.origin.y = 16;
 		this.animation.add("idle", [7], 8, true);
 		this.animation.add("play", [0, 1, 2, 3, 4, 5, 6, 7], 16, false);
 		this.animation.play("idle", true);
@@ -26,7 +27,7 @@ class ClickSprite extends FlxSprite
 		this.visible = false;
 	}
 	
-	public function playAt(x:Int, y:Int)
+	public function playAt(x:Float, y:Float)
 	{
 		this.visible = false;
 		this.setPosition(x, y);
