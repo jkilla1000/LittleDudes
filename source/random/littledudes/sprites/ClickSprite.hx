@@ -21,7 +21,7 @@ class ClickSprite extends FlxSprite
 		this.origin.x = 16;
 		this.origin.y = 16;
 		this.animation.add("idle", [7], 8, true);
-		this.animation.add("play", [0, 1, 2, 3, 4, 5, 6, 7], 16, false);
+		this.animation.add("play", [0, 1, 2, 3, 4, 5, 6, 7], 24, false);
 		this.animation.play("idle", true);
 		
 		this.visible = false;

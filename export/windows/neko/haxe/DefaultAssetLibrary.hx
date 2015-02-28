@@ -48,12 +48,18 @@ class DefaultAssetLibrary extends AssetLibrary {
 		
 		path.set ("assets/data/data-goes-here.txt", "assets/data/data-goes-here.txt");
 		type.set ("assets/data/data-goes-here.txt", AssetType.TEXT);
+		path.set ("assets/images/cabin-blue.png", "assets/images/cabin-blue.png");
+		type.set ("assets/images/cabin-blue.png", AssetType.IMAGE);
+		path.set ("assets/images/cabin-red.png", "assets/images/cabin-red.png");
+		type.set ("assets/images/cabin-red.png", AssetType.IMAGE);
 		path.set ("assets/images/clickanim.png", "assets/images/clickanim.png");
 		type.set ("assets/images/clickanim.png", AssetType.IMAGE);
 		path.set ("assets/images/littledude.png", "assets/images/littledude.png");
 		type.set ("assets/images/littledude.png", AssetType.IMAGE);
 		path.set ("assets/music/music-goes-here.txt", "assets/music/music-goes-here.txt");
 		type.set ("assets/music/music-goes-here.txt", AssetType.TEXT);
+		path.set ("assets/sounds/hit.wav", "assets/sounds/hit.wav");
+		type.set ("assets/sounds/hit.wav", AssetType.SOUND);
 		path.set ("assets/sounds/sounds-go-here.txt", "assets/sounds/sounds-go-here.txt");
 		type.set ("assets/sounds/sounds-go-here.txt", AssetType.TEXT);
 		path.set ("assets/sounds/beep.ogg", "assets/sounds/beep.ogg");
@@ -72,6 +78,9 @@ class DefaultAssetLibrary extends AssetLibrary {
 		#if (windows || mac || linux)
 		
 		var useManifest = false;
+		useManifest = true;
+		useManifest = true;
+		useManifest = true;
 		useManifest = true;
 		useManifest = true;
 		useManifest = true;
@@ -705,7 +714,13 @@ class DefaultAssetLibrary extends AssetLibrary {
 
 
 
+
+
+
 #elseif html5
+
+
+
 
 
 

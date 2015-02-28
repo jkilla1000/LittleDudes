@@ -9,6 +9,8 @@ import flixel.util.FlxPoint;
 import flixel.util.FlxSort;
 import flixel.util.FlxRect;
 import flixel.util.FlxColorUtil;
+import flixel.util.FlxMath;
+import random.littledudes.sprites.Cabin;
 import random.littledudes.sprites.ClickSprite;
 import random.littledudes.sprites.DudeSprite;
 
@@ -18,6 +20,9 @@ import random.littledudes.sprites.DudeSprite;
  */
 class GameState extends FlxState
 {
+	public var playerCabin:Cabin;
+	public var enemyCabin:Cabin;
+	
 	private var lastX:Int = 0;
 	private var lastY:Int = 0;
 	private var cameraScrollSpeed = 10;
@@ -33,15 +38,27 @@ class GameState extends FlxState
 		
 		this.dudesByFaction.set(Factions.Player, new FlxTypedGroup<DudeSprite>());
 		this.dudesByFaction.set(Factions.Enemy, new FlxTypedGroup<DudeSprite>());
+
+		for (y in 0...50)
+		{
+			this.dudesByFaction.get(Factions.Player).add(new DudeSprite(100, 10+y*10, Factions.Player));
+		}
 		
-		this.dudesByFaction.get(Factions.Player).add(new DudeSprite(100, 100, Factions.Player));
-		
-		this.dudesByFaction.get(Factions.Enemy).add(new DudeSprite(300, 300, Factions.Enemy));
+		for (y in 0...50)
+		{
+			this.dudesByFaction.get(Factions.Enemy).add(new DudeSprite(300, 10+y*10, Factions.Enemy));
+		}
 		
 		this.clickAnimation = new ClickSprite();
 		
 		this.add(this.dudesByFaction.get(Factions.Player));
 		this.add(this.dudesByFaction.get(Factions.Enemy));
+		
+		this.playerCabin = new Cabin( -100, 100, true);
+		this.enemyCabin = new Cabin(1000, 100, false);
+		
+		this.add(playerCabin);
+		this.add(enemyCabin);
 		
 		this.add(this.clickAnimation);
 		
@@ -50,13 +67,15 @@ class GameState extends FlxState
 	
 	override public function update()
 	{
+		super.update();
 		
-		//sort anc collide the "dudes".
+		//sort and collide the "dudes".
 		
 		this.dudesByFaction.get(Factions.Player).sort(FlxSort.byY, FlxSort.ASCENDING);
 		
+		FlxG.collide(this.playerCabin, this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Player));
-		FlxG.collide(this.dudesByFaction.get(Factions.Enemy), this.dudesByFaction.get(Factions.Enemy));
+		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Enemy));
 		
 		//Play the click animation, and set the movement target for the dudes.
 		
@@ -166,7 +185,26 @@ class GameState extends FlxState
 			FlxG.camera.scroll.x -= this.cameraScrollSpeed;
 		}
 		
-		super.update();
+		//Check attack shit
+		
+		this.dudesByFaction.get(Factions.Player).forEachAlive(function (sprite:DudeSprite)
+		{
+			var boundingBox = new FlxRect(sprite.getMidpoint().x - sprite.attackRange, sprite.getMidpoint().y - sprite.attackRange, sprite.attackRange * 2, sprite.attackRange * 2);
+			
+			var targetsInRange:Array<DudeSprite> = [];
+			
+			this.dudesByFaction.get(Factions.Enemy).forEachAlive(function (enemySprite:DudeSprite)
+			{
+				if (boundingBox.containsFlxPoint(enemySprite.getMidpoint()))
+				{
+					targetsInRange.push(enemySprite);
+				}
+			});
+			
+			sprite.targetsInProximity(targetsInRange);
+			
+			
+		});
 	}
 	
 	override public function draw()
