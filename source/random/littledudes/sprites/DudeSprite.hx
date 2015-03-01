@@ -33,7 +33,7 @@ class DudeSprite extends FlxSprite
 	
 	public var healthBar:FlxBar;
 	
-	public function new(x:Int = 0, y:Int = 0, faction:String = "Player") 
+	public function new(x:Float = 0, y:Float = 0, faction:String = "Player") 
 	{
 		super(x, y, "assets/images/littledude.png");
 		

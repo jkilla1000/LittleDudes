@@ -71,9 +71,9 @@ class GameState extends FlxState
 		this.dudesByFaction.get(Factions.Player).sort(FlxSort.byY, FlxSort.ASCENDING);
 		
 		FlxG.collide(this.playerCabin, this.dudesByFaction.get(Factions.Player));
-		FlxG.collide(this.enemyCabin, this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Enemy));
+		FlxG.collide(this.enemyCabin, this.dudesByFaction.get(Factions.Player));
 		
 		//Play the click animation, and set the movement target for the dudes.
 		
@@ -173,8 +173,8 @@ class GameState extends FlxState
 		}
 		
 		//Allow the camearas to be scrolled by the arrow keys.
-		
-		FlxG.camera.zoom = Math.max(1, Math.min(FlxG.camera.zoom + FlxG.mouse.wheel / 10, 2));
+		if (this.subState == null)
+			FlxG.camera.zoom = Math.max(1, Math.min(FlxG.camera.zoom + FlxG.mouse.wheel / 10, 2));
 		
 		if (FlxG.keys.pressed.UP)
 		{

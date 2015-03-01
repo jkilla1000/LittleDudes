@@ -26,10 +26,19 @@ class Cabin extends FlxSprite
 	
 	private var spawnTimeLeft:Float = 5.0;
 	
-	private var spawnTime:Float = 5.0;
+	public static var spawnTime:Float = 5.0;
 	
-	private var isSpawning:Bool = false;
-	 
+	public static var isSpawning:Bool = false;
+	
+	public static var dudeAttackRange:Int = 25;
+
+	public static var dudeAttackDamage:Int = 20;
+	
+	public static var dudeAttackTime:Float = 0.5;
+	
+	public static var dudeHealth:Int = 100;
+	
+	public static var dudeMovementSpeed:Int = 100;
 	
 	public function new(X:Float=0, Y:Float=0, isPlayer:Bool) 
 	{
@@ -81,7 +90,14 @@ class Cabin extends FlxSprite
 	
 	private function spawnDude()
 	{
+		var dude:DudeSprite = new DudeSprite(this.x + 100 + Math.random() * 100, this.y - 50 + Math.random() * 100, Factions.Player);
+		dude.health = dudeHealth;
+		dude.damage = dudeAttackDamage;
+		dude.attackRange = dudeAttackRange;
+		dude.attackTime = dudeAttackTime;
+		dude.movementSpeed = dudeMovementSpeed;
 		
+		cast (FlxG.state, GameState).addDude(dude);
 	}
 	
 	override public function update()
@@ -99,7 +115,7 @@ class Cabin extends FlxSprite
 					}
 			}
 			
-			if (this.isSpawning)
+			if (isSpawning)
 			{
 			
 				this.spawnTimeLeft -= FlxG.elapsed;
@@ -107,12 +123,12 @@ class Cabin extends FlxSprite
 				if (this.spawnTimeLeft <= 0)
 				{
 					this.spawnDude();
-					this.spawnTimeLeft = this.spawnTime;
+					this.spawnTimeLeft = spawnTime;
 				}
 			}
 			else 
 			{
-				this.spawnTimeLeft = this.spawnTime;
+				this.spawnTimeLeft = spawnTime;
 			}
 		}
 	}
