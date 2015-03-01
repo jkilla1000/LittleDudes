@@ -39,14 +39,9 @@ class GameState extends FlxState
 		this.dudesByFaction.set(Factions.Player, new FlxTypedGroup<DudeSprite>());
 		this.dudesByFaction.set(Factions.Enemy, new FlxTypedGroup<DudeSprite>());
 
-		for (y in 0...50)
+		for (y in 0...10)
 		{
-			this.dudesByFaction.get(Factions.Player).add(new DudeSprite(100, 10+y*10, Factions.Player));
-		}
-		
-		for (y in 0...50)
-		{
-			this.dudesByFaction.get(Factions.Enemy).add(new DudeSprite(300, 10+y*10, Factions.Enemy));
+			this.dudesByFaction.get(Factions.Player).add(new DudeSprite(100, 10+y*30, Factions.Player));
 		}
 		
 		this.clickAnimation = new ClickSprite();
@@ -54,13 +49,15 @@ class GameState extends FlxState
 		this.add(this.dudesByFaction.get(Factions.Player));
 		this.add(this.dudesByFaction.get(Factions.Enemy));
 		
-		this.playerCabin = new Cabin( -100, 100, true);
+		this.playerCabin = new Cabin(0, 0, true);
 		this.enemyCabin = new Cabin(1000, 100, false);
 		
 		this.add(playerCabin);
 		this.add(enemyCabin);
 		
 		this.add(this.clickAnimation);
+		
+		this.persistentUpdate = true;
 		
 		super.create();
 	}
@@ -74,6 +71,7 @@ class GameState extends FlxState
 		this.dudesByFaction.get(Factions.Player).sort(FlxSort.byY, FlxSort.ASCENDING);
 		
 		FlxG.collide(this.playerCabin, this.dudesByFaction.get(Factions.Player));
+		FlxG.collide(this.enemyCabin, this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Enemy));
 		
@@ -83,9 +81,18 @@ class GameState extends FlxState
 		{
 			this.clickAnimation.playAt(FlxG.mouse.getWorldPosition().x, FlxG.mouse.getWorldPosition().y);
 			
+			var averageX:Float = 0;
+			var averageY:Float = 0;
+			
 			for (dude in this.selectedDudes)
 			{
-				dude.setTargetPosition(FlxG.mouse.getWorldPosition().x, FlxG.mouse.getWorldPosition().y);
+				averageX += dude.getMidpoint().x / this.selectedDudes.length;
+				averageY += dude.getMidpoint().y / this.selectedDudes.length;
+			}
+			
+			for (dude in this.selectedDudes)
+			{
+				dude.setTargetPosition(dude.getMidpoint().x+(FlxG.mouse.getWorldPosition().x-averageX), dude.getMidpoint().y+(FlxG.mouse.getWorldPosition().y-averageY));
 			}
 		}
 		
@@ -167,6 +174,8 @@ class GameState extends FlxState
 		
 		//Allow the camearas to be scrolled by the arrow keys.
 		
+		FlxG.camera.zoom = Math.max(1, Math.min(FlxG.camera.zoom + FlxG.mouse.wheel / 10, 2));
+		
 		if (FlxG.keys.pressed.UP)
 		{
 			FlxG.camera.scroll.y -= this.cameraScrollSpeed;
@@ -189,21 +198,44 @@ class GameState extends FlxState
 		
 		this.dudesByFaction.get(Factions.Player).forEachAlive(function (sprite:DudeSprite)
 		{
-			var boundingBox = new FlxRect(sprite.getMidpoint().x - sprite.attackRange, sprite.getMidpoint().y - sprite.attackRange, sprite.attackRange * 2, sprite.attackRange * 2);
-			
-			var targetsInRange:Array<DudeSprite> = [];
-			
-			this.dudesByFaction.get(Factions.Enemy).forEachAlive(function (enemySprite:DudeSprite)
+			if (sprite.isOnScreen())
 			{
-				if (boundingBox.containsFlxPoint(enemySprite.getMidpoint()))
+				var boundingBox = new FlxRect(sprite.getMidpoint().x - sprite.attackRange, sprite.getMidpoint().y - sprite.attackRange, sprite.attackRange * 2, sprite.attackRange * 2);
+			
+				var targetsInRange:Array<DudeSprite> = [];
+			
+				this.dudesByFaction.get(Factions.Enemy).forEachAlive(function (enemySprite:DudeSprite)
 				{
-					targetsInRange.push(enemySprite);
-				}
-			});
+					if (boundingBox.containsFlxPoint(enemySprite.getMidpoint()))
+					{
+						targetsInRange.push(enemySprite);
+					}
+				});
 			
-			sprite.targetsInProximity(targetsInRange);
+				sprite.targetsInProximity(targetsInRange);
 			
+			}
+		});
+		
+		this.dudesByFaction.get(Factions.Enemy).forEachAlive(function (sprite:DudeSprite)
+		{
+			if (sprite.isOnScreen())
+			{
+				var boundingBox = new FlxRect(sprite.getMidpoint().x - sprite.attackRange, sprite.getMidpoint().y - sprite.attackRange, sprite.attackRange * 2, sprite.attackRange * 2);
 			
+				var targetsInRange:Array<DudeSprite> = [];
+			
+				this.dudesByFaction.get(Factions.Player).forEachAlive(function (enemySprite:DudeSprite)
+				{
+					if (boundingBox.containsFlxPoint(enemySprite.getMidpoint()))
+					{
+						targetsInRange.push(enemySprite);
+					}
+				});
+			
+				sprite.targetsInProximity(targetsInRange);
+			
+			}
 		});
 	}
 	
@@ -234,6 +266,11 @@ class GameState extends FlxState
 			FlxG.camera.canvas.graphics.endFill();
 			#end
 		}
+	}
+	
+	public function addDude(dude:DudeSprite)
+	{
+		this.dudesByFaction.get(Factions.Player).add(dude);
 	}
 	
 }

@@ -54,8 +54,12 @@ class DefaultAssetLibrary extends AssetLibrary {
 		type.set ("assets/images/cabin-red.png", AssetType.IMAGE);
 		path.set ("assets/images/clickanim.png", "assets/images/clickanim.png");
 		type.set ("assets/images/clickanim.png", AssetType.IMAGE);
+		path.set ("assets/images/gp.png", "assets/images/gp.png");
+		type.set ("assets/images/gp.png", AssetType.IMAGE);
 		path.set ("assets/images/littledude.png", "assets/images/littledude.png");
 		type.set ("assets/images/littledude.png", AssetType.IMAGE);
+		path.set ("assets/images/menuBackground.png", "assets/images/menuBackground.png");
+		type.set ("assets/images/menuBackground.png", AssetType.IMAGE);
 		path.set ("assets/music/music-goes-here.txt", "assets/music/music-goes-here.txt");
 		type.set ("assets/music/music-goes-here.txt", AssetType.TEXT);
 		path.set ("assets/sounds/hit.wav", "assets/sounds/hit.wav");
@@ -78,6 +82,8 @@ class DefaultAssetLibrary extends AssetLibrary {
 		#if (windows || mac || linux)
 		
 		var useManifest = false;
+		useManifest = true;
+		useManifest = true;
 		useManifest = true;
 		useManifest = true;
 		useManifest = true;
@@ -717,7 +723,11 @@ class DefaultAssetLibrary extends AssetLibrary {
 
 
 
+
+
 #elseif html5
+
+
 
 
 
