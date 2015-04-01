@@ -140,6 +140,10 @@ class Server extends ThreadServer<NetworkedClient, Message>
 					{
 						message += "playercabin " + client.cabinX + " " + client.cabinY + " " + client.cabinHealth + ";";
 					}
+					else
+					{
+						message += "enemycabin " + client.id + " " + client.cabinX + " " + client.cabinY + " " + client.cabinHealth + ";";
+					}
 				}
 				
 				message += nl;
@@ -164,6 +168,20 @@ class Server extends ThreadServer<NetworkedClient, Message>
 				}
 				
 				this.sendData(c.socket, dudeInfo);
+			}
+			else if (StringTools.startsWith(message, "settarget"))
+			{
+				var splitMessage = message.split(" ");
+				var dude = NetworkedDude.dudesById.get(Std.parseInt(splitMessage[1]));
+				
+				dude.x = Std.parseInt(splitMessage[2]);
+				dude.y = Std.parseInt(splitMessage[3]);
+				
+				for (client in clients)
+				{
+					if (client.id != c.id)
+						this.sendData(client.socket, message);
+				}
 			}
 		}
 	}

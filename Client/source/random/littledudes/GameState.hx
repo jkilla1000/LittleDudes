@@ -29,7 +29,7 @@ import sys.net.Socket;
 class GameState extends FlxState
 {
 	public var playerCabin:Cabin;
-	public var enemyCabin:Cabin;
+	public var enemyCabins:Map<Int, Cabin> = new Map<Int, Cabin>();
 	
 	private var lastX:Int = 0;
 	private var lastY:Int = 0;
@@ -38,7 +38,8 @@ class GameState extends FlxState
 	private var selecting:Bool = false;
 	private var selectionBox:FlxRect = new FlxRect(0, 0, 1, 1);
 	private var selectedDudes:Array<DudeSprite> = new Array<DudeSprite>();
-	var dudesByFaction:Map<String, FlxTypedGroup<DudeSprite>> = new Map<String, FlxTypedGroup<DudeSprite>>();
+	private var dudesById:Map<Int, DudeSprite> = new Map<Int, DudeSprite>();
+	private var dudesByFaction:Map<String, FlxTypedGroup<DudeSprite>> = new Map<String, FlxTypedGroup<DudeSprite>>();
 	
 	private var isConnected = false;
 	
@@ -74,7 +75,6 @@ class GameState extends FlxState
 		
 		this.socket.setTimeout(0.1);
 		
-		//this.socket.output.writeString("setname alfred;");
 	}
 	
 	private function updateConnection()
@@ -107,10 +107,12 @@ class GameState extends FlxState
 					dude.damage = Std.parseInt(splitMessage[5]);
 					dude.attackRange = Std.parseInt(splitMessage[6]);
 					dude.attackTime = Std.parseFloat(splitMessage[7]);
+					this.dudesById.set(dude.ID, dude);
 					this.dudesByFaction.get(Factions.Player).add(dude);
 				}
 				else if (StringTools.startsWith(message, "newenemydude"))
 				{
+					trace("Registered a dude"); 
 					var splitMessage = message.split(" ");
 					var dude = new DudeSprite(Std.parseFloat(splitMessage[2]), Std.parseFloat(splitMessage[3]), Factions.Enemy);
 					dude.ID = Std.parseInt(splitMessage[1]);
@@ -118,7 +120,14 @@ class GameState extends FlxState
 					dude.damage = Std.parseInt(splitMessage[5]);
 					dude.attackRange = Std.parseInt(splitMessage[6]);
 					dude.attackTime = Std.parseFloat(splitMessage[7]);
+					this.dudesById.set(dude.ID, dude);
 					this.dudesByFaction.get(Factions.Enemy).add(dude);
+				}
+				else if (StringTools.startsWith(message, "settarget"))
+				{
+					var splitMessage = message.split(" ");
+					var id = Std.parseInt(splitMessage[1]);
+					this.dudesById.get(id).setTargetPosition(Std.parseFloat(splitMessage[2]), Std.parseFloat(splitMessage[3]));
 				}
 				else if (StringTools.startsWith(message, "playercabin"))
 				{
@@ -127,6 +136,15 @@ class GameState extends FlxState
 					playerCabin.health = Std.parseInt(splitMessage[3]);
 					this.add(playerCabin);
 					FlxG.camera.scroll.set(this.playerCabin.x-FlxG.width/2, this.playerCabin.y-FlxG.height/2);
+				}
+				else if (StringTools.startsWith(message, "enemycabin"))
+				{
+					var splitMessage = message.split(" ");
+					var id = Std.parseInt(splitMessage[1]);
+					var cabin = new Cabin(Std.parseInt(splitMessage[2]), Std.parseInt(splitMessage[3]), false);
+					cabin.health = Std.parseInt(splitMessage[4]);
+					this.enemyCabins.set(id, cabin);
+					this.add(cabin);
 				}
 			}
 		}
@@ -184,7 +202,8 @@ class GameState extends FlxState
 		
 		this.connectionThread.sendMessage("requestcabins;requestdudes;");
 	
-		FlxG.console.addCommand(["goto"], function (x:Dynamic) { trace(x);   }, "Sets the cam's position", "X and Y", 2, 3);
+		
+		FlxG.console.addCommand(["goto"], function (x, y, other:Array<Dynamic>) { FlxG.camera.scroll.x = Std.parseFloat(x); FlxG.camera.scroll.y = Std.parseFloat(y);}, "test", "test2", 2, 3);
 		
 		super.create();
 	}
@@ -208,7 +227,7 @@ class GameState extends FlxState
 		FlxG.collide(this.playerCabin, this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Player));
 		FlxG.collide(this.dudesByFaction.get(Factions.Player), this.dudesByFaction.get(Factions.Enemy));
-		FlxG.collide(this.enemyCabin, this.dudesByFaction.get(Factions.Player));
+		
 		
 		//Play the click animation, and set the movement target for the dudes.
 		
@@ -227,7 +246,12 @@ class GameState extends FlxState
 			
 			for (dude in this.selectedDudes)
 			{
-				dude.setTargetPosition(dude.getMidpoint().x+(FlxG.mouse.getWorldPosition().x-averageX), dude.getMidpoint().y+(FlxG.mouse.getWorldPosition().y-averageY));
+				var targetX = dude.getMidpoint().x + (FlxG.mouse.getWorldPosition().x - averageX);
+				var targetY = dude.getMidpoint().y + (FlxG.mouse.getWorldPosition().y - averageY);
+				
+				this.connectionThread.sendMessage("settarget " + dude.ID + " " + targetX + " " + targetY + " ;");
+				
+				dude.setTargetPosition(targetX, targetY);
 			}
 		}
 		

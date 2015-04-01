@@ -8,6 +8,7 @@ class NetworkedDude
 {
 	static var numDudes = 0;
 	
+	public static var dudesById:Map<Int, NetworkedDude> = new Map<Int, NetworkedDude>();
 
 	public var x:Int = 0;
 	public var y:Int = 0;
@@ -26,6 +27,8 @@ class NetworkedDude
 		this.y = y;
 		this.id = numDudes;
 		numDudes++;
+		
+		dudesById.set(this.id, this);
 	}
 	
 	
