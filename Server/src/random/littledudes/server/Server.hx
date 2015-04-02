@@ -1,6 +1,7 @@
 package random.littledudes.server;
 
 import haxe.io.Bytes;
+import haxe.Serializer;
 import neko.Lib;
 import neko.vm.Thread;
 import sys.net.Host;
@@ -27,7 +28,8 @@ typedef Message = {
  *  newenemydude id x y health speed damage range attkTime;
  *  damagedude id damage;
  *  settarget id tx ty
- *  settarget [ids] 
+ *  settarget [ids]
+ *  killcabin id;
  *  killdude id;
  * 
  * 
@@ -109,7 +111,22 @@ class Server extends ThreadServer<NetworkedClient, Message>
 		
 		for (message in msg.str.split(";"))
 		{
-			if (StringTools.startsWith(message, "setname"))
+			if (StringTools.startsWith(message, "damagedude"))
+			{
+				var splitMessage = message.split(" ");
+				
+				var dude = NetworkedDude.dudesById.get(Std.parseInt(splitMessage[1]));
+				
+				dude.health -= Std.parseInt(splitMessage[2]);
+				
+				for (client in this.clients)
+				{
+					this.sendData(client.socket, message + nl);
+					trace(message);
+				}
+				
+			}
+			else if (StringTools.startsWith(message, "setname"))
 			{
 				c.name = message.split(" ")[1];
 			}
@@ -138,7 +155,7 @@ class Server extends ThreadServer<NetworkedClient, Message>
 				{
 					if (c.id == client.id)
 					{
-						message += "playercabin " + client.cabinX + " " + client.cabinY + " " + client.cabinHealth + ";";
+						message += "playercabin " + client.id + " " + client.cabinX + " " + client.cabinY + " " + client.cabinHealth + ";";
 					}
 					else
 					{
@@ -167,6 +184,8 @@ class Server extends ThreadServer<NetworkedClient, Message>
 					}
 				}
 				
+				dudeInfo += nl;
+				
 				this.sendData(c.socket, dudeInfo);
 			}
 			else if (StringTools.startsWith(message, "settarget"))
@@ -180,7 +199,9 @@ class Server extends ThreadServer<NetworkedClient, Message>
 				for (client in clients)
 				{
 					if (client.id != c.id)
-						this.sendData(client.socket, message);
+					{
+						this.sendData(client.socket, message + nl);
+					}
 				}
 			}
 		}
@@ -194,6 +215,20 @@ class Server extends ThreadServer<NetworkedClient, Message>
 	override function clientDisconnected( c : NetworkedClient)
 	{
 		this.clients.remove(c);
+		
+		var message =  "killcabin " + c.id + " ;";
+		
+		for (dude in c.dudes)
+		{
+			message += "killdude " + dude.id + ";";
+		}
+		
+		message += nl;
+		
+		for (client in clients)
+		{
+			this.sendData(client.socket, message);
+		}
 		Lib.println("Client " + c.getIdentifier() + " disconnected.");
 	}
 	
@@ -201,14 +236,15 @@ class Server extends ThreadServer<NetworkedClient, Message>
 	{
 		for (client in this.clients)
 		{
-			this.sendData(client.socket, "tick" + nl);
+			//this.sendData(client.socket, "tick" + nl);
 		}
 	}
 	
 	static function main() 
-	{
+	{	
 		var server = new Server();
 		server.listen = 2;
-		server.run("localhost", 6728);
+		trace(Host.localhost());
+		server.run("192.168.1.176", 6728);
 	}
 }

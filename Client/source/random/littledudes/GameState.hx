@@ -10,9 +10,11 @@ import flixel.util.FlxSort;
 import flixel.util.FlxRect;
 import flixel.util.FlxColorUtil;
 import flixel.util.FlxMath;
+import openfl.display.InterpolationMethod;
 import random.littledudes.sprites.Cabin;
 import random.littledudes.sprites.ClickSprite;
 import random.littledudes.sprites.DudeSprite;
+import random.littledudes.sprites.CabinIndicatorSprite;
 import random.network.NetworkedDude;
 
 import haxe.Serializer;
@@ -50,9 +52,33 @@ class GameState extends FlxState
 	var connectionThread:Thread;
 	var gameThread:Thread;
 	
+	private var ip:String;
+	private var port:Int;
+	
+	public function new(ip:String, port:String)
+	{
+		super();
+		this.ip = ip;
+		this.port = Std.parseInt(port);
+	}
+	
 	public function addDude(dude:NetworkedDude)
 	{
-		this.socket.write("new" + dude.toString());
+		this.connectionThread.sendMessage("new" + dude.toString());
+	}
+	
+	public function damageDude(dude:DudeSprite, damage:Float)
+	{
+		this.connectionThread.sendMessage("damagedude " + dude.ID + " " + damage + ";");
+		trace("Sending damge details");
+	}
+	
+	public function gameOver()
+	{
+		this.connectionThread.sendMessage("disconnect");
+		this.closeSubState();
+		this.persistentUpdate = false;
+		this.openSubState(new LoseSubState());
 	}
 	
 	private function attemptConnection()
@@ -61,13 +87,13 @@ class GameState extends FlxState
 		
 		try 
 		{
-			this.socket.connect(new Host("localhost"), 6728);
+			this.socket.connect(new Host(this.ip), this.port);
 		}
 		catch (e:Dynamic) 
 		{
 			trace("Failed to connect to server");
 			this.isConnected = false;
-			Sys.exit(1234);
+			FlxG.switchState(new MenuState());
 		}
 		
 		
@@ -132,8 +158,9 @@ class GameState extends FlxState
 				else if (StringTools.startsWith(message, "playercabin"))
 				{
 					var splitMessage = message.split(" ");
-					this.playerCabin = new Cabin(Std.parseInt(splitMessage[1]), Std.parseInt(splitMessage[2]), true);
-					playerCabin.health = Std.parseInt(splitMessage[3]);
+					this.playerCabin = new Cabin(Std.parseInt(splitMessage[2]), Std.parseInt(splitMessage[3]), true);
+					playerCabin.ID = Std.parseInt(splitMessage[1]);
+					playerCabin.health = Std.parseInt(splitMessage[4]);
 					this.add(playerCabin);
 					FlxG.camera.scroll.set(this.playerCabin.x-FlxG.width/2, this.playerCabin.y-FlxG.height/2);
 				}
@@ -143,8 +170,32 @@ class GameState extends FlxState
 					var id = Std.parseInt(splitMessage[1]);
 					var cabin = new Cabin(Std.parseInt(splitMessage[2]), Std.parseInt(splitMessage[3]), false);
 					cabin.health = Std.parseInt(splitMessage[4]);
+					this.add(new CabinIndicatorSprite(cabin));
 					this.enemyCabins.set(id, cabin);
 					this.add(cabin);
+				}
+				else if (StringTools.startsWith(message, "killcabin"))
+				{
+					var splitMessage = message.split(" ");
+					
+					var id = Std.parseInt(splitMessage[1]);
+					
+					if (id != this.playerCabin.ID)
+					{
+						this.enemyCabins.get(Std.parseInt(splitMessage[1])).kill();
+					}
+					else 
+					{
+						this.gameOver();
+					}
+				}
+				else if (StringTools.startsWith(message, "killdude"))
+				{
+					var splitMessage = message.split(" ");
+					
+					var id = Std.parseInt(splitMessage[1]);
+					
+					this.dudesById.get(id).kill();
 				}
 			}
 		}
@@ -191,6 +242,7 @@ class GameState extends FlxState
 		this.add(this.clickAnimation);
 		
 		this.persistentUpdate = true;
+		this.persistentDraw = true;
 		
 		this.socket = new Socket();
 		
@@ -205,6 +257,8 @@ class GameState extends FlxState
 		
 		FlxG.console.addCommand(["goto"], function (x, y, other:Array<Dynamic>) { FlxG.camera.scroll.x = Std.parseFloat(x); FlxG.camera.scroll.y = Std.parseFloat(y);}, "test", "test2", 2, 3);
 		
+		
+		
 		super.create();
 	}
 	
@@ -213,13 +267,32 @@ class GameState extends FlxState
 		
 		super.update();
 		
+		if (FlxG.keys.justPressed.ESCAPE)
+		{
+			this.connectionThread.sendMessage("disconnect");
+			FlxG.switchState(new MenuState());
+		}
+		
 		if (FlxG.keys.justPressed.N)
 		{
 			FlxG.camera.scroll.set(this.playerCabin.x-FlxG.width/2, this.playerCabin.y-FlxG.height/2);
 		}
 		
+		//DEBUG COMMANDS!!!!!!
+		#if debug
+		if (FlxG.keys.justPressed.L)
+		{
+			this.persistentUpdate = false;
+			this.openSubState(new LoseSubState());
+		}
 		
+		if (FlxG.keys.justPressed.SPACE)
+		{
+			
+			this.addDude(new NetworkedDude(Std.int(FlxG.mouse.getWorldPosition().x), Std.int(FlxG.mouse.getWorldPosition().y))); 
+		}
 		
+		#end
 		//sort and collide the "dudes".
 		
 		this.dudesByFaction.get(Factions.Player).sort(FlxSort.byY, FlxSort.ASCENDING);

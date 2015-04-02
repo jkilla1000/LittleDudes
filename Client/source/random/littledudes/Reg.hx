@@ -12,4 +12,4 @@ class Reg
 	public static var damageUpgradeLevel:Int = 1;
 	public static var timeUpgradeLevel:Int = 1;
 	
-	}
+}

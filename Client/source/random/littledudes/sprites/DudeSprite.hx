@@ -116,7 +116,7 @@ class DudeSprite extends FlxSprite
 		{
 			for (target in targets)
 			{
-				target.health -= attackDamage;
+				cast (FlxG.state, GameState).damageDude(target, attackDamage);
 			}
 			this.timeSinceLastAttack = 0;
 		}

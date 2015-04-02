@@ -54,6 +54,8 @@ class Cabin extends FlxSprite
 			this.loadGraphic(Assets.getBitmapData("assets/images/cabin-red.png"), false, 32, 32);
 		}
 		
+		
+		
 		this.scale.x = 2;
 		this.scale.y = 2;
 		
@@ -112,7 +114,6 @@ class Cabin extends FlxSprite
 					if (FlxMath.mouseInFlxRect(true, new FlxRect(this.x - this.width, this.y - this.height, this.width * 2, this.height * 2)))
 					{
 						FlxG.state.openSubState(new UpgradeMenu());
-						
 					}
 			}
 			
@@ -132,6 +133,12 @@ class Cabin extends FlxSprite
 				this.spawnTimeLeft = spawnTime;
 			}
 		}
+	}
+	
+	override public function kill()
+	{
+		this.healthBar.kill();
+		super.kill();
 	}
 	
 }
