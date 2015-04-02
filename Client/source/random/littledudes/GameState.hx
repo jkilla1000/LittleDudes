@@ -19,7 +19,11 @@ import random.network.NetworkedDude;
 
 import haxe.Serializer;
 
+#if neko
 import neko.vm.Thread;
+#else
+import cpp.vm.Thread;
+#end
 
 import sys.net.Host;
 import sys.net.Socket;
@@ -99,7 +103,7 @@ class GameState extends FlxState
 		
 		this.socket.setFastSend(true);
 		
-		this.socket.setTimeout(0.1);
+		//this.socket.setTimeout(0.1);
 		
 	}
 	
@@ -211,6 +215,7 @@ class GameState extends FlxState
 		{
 			var threadMessage = Thread.readMessage(false);
 			
+			
 			if (threadMessage == "disconnect")
 			{
 				this.socket.close();
@@ -242,21 +247,18 @@ class GameState extends FlxState
 		this.add(this.clickAnimation);
 		
 		this.persistentUpdate = true;
-		this.persistentDraw = true;
 		
 		this.socket = new Socket();
 		
 		this.gameThread = Thread.current();
 		this.connectionThread = Thread.create(this.startClientConnection);
 		
-		
 		Thread.readMessage(true);
 		
+		
 		this.connectionThread.sendMessage("requestcabins;requestdudes;");
-	
 		
 		FlxG.console.addCommand(["goto"], function (x, y, other:Array<Dynamic>) { FlxG.camera.scroll.x = Std.parseFloat(x); FlxG.camera.scroll.y = Std.parseFloat(y);}, "test", "test2", 2, 3);
-		
 		
 		
 		super.create();

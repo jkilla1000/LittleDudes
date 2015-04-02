@@ -236,7 +236,7 @@ class Server extends ThreadServer<NetworkedClient, Message>
 	{
 		for (client in this.clients)
 		{
-			//this.sendData(client.socket, "tick" + nl);
+			this.sendData(client.socket, "tick" + nl);
 		}
 	}
 	

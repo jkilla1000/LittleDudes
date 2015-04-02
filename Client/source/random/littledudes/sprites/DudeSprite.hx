@@ -111,7 +111,6 @@ class DudeSprite extends FlxSprite
 	public function targetsInProximity(targets:Array<DudeSprite>)
 	{
 		var attackDamage:Float = this.damage / targets.length;
-		
 		if (this.timeSinceLastAttack >= this.attackTime)
 		{
 			for (target in targets)

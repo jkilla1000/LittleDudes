@@ -28,7 +28,7 @@ class MenuState extends FlxState
 
 		this.set_bgColor(FlxColor.WHITE);
 		
-		ipInput = new FlxInputText(100, 100, 400, "localhost", 16, FlxColor.WHITE, FlxColor.BLUE);
+		ipInput = new FlxInputText(100, 100, 400, "192.168.1.176", 16, FlxColor.WHITE, FlxColor.BLUE);
 		portInput = new FlxInputText(100, 200, 400, "6728", 16, FlxColor.WHITE, FlxColor.BLUE);
 		var continueButton = new FlxButton(100, 250, "Connect", connectFunction);
 		
